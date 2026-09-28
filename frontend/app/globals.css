@@ -1,0 +1,770 @@
+@import 'tailwindcss';
+@import 'tw-animate-css';
+
+@custom-variant dark (&:is(.dark *));
+
+/* =========================================================================
+   Quotex Live — Midnight Emerald + Champagne Gold
+   ----------------------------------------------------------------
+   Brand surface system (used directly via Tailwind arbitrary classes
+   and via design tokens). Three surface tiers + two brand accents.
+     midnight       #0A0F0D  page background
+     charcoal       #0F1815  card surface
+     charcoal-raised#152821  raised / hover surface
+     emerald        #10B981  primary brand
+     champagne      #F5C16C  premium accent (gold)
+     ivory          #F8FAFC  body text
+     ivory-soft     #94A3B8  muted text
+   =========================================================================
+   Light luxury theme — used on activate-account / purchase-* pages.
+   Same emerald + champagne accents on a clean white surface.
+   ========================================================================= */
+:root {
+  --background: oklch(1 0 0);
+  --foreground: oklch(0.16 0.012 160);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.16 0.012 160);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.16 0.012 160);
+  --primary: oklch(0.65 0.16 158);
+  --primary-foreground: oklch(0.99 0.005 155);
+  --secondary: oklch(0.97 0.01 158);
+  --secondary-foreground: oklch(0.18 0.012 160);
+  --muted: oklch(0.97 0.005 160);
+  --muted-foreground: oklch(0.50 0.015 160);
+  --accent: oklch(0.84 0.13 85);
+  --accent-foreground: oklch(0.18 0.012 160);
+  --destructive: oklch(0.60 0.22 25);
+  --destructive-foreground: oklch(0.99 0.005 160);
+  --border: oklch(0.93 0.006 160);
+  --input: oklch(0.95 0.006 160);
+  --ring: oklch(0.65 0.16 158);
+  --chart-1: oklch(0.65 0.16 158);
+  --chart-2: oklch(0.60 0.22 25);
+  --chart-3: oklch(0.84 0.13 85);
+  --chart-4: oklch(0.50 0.015 160);
+  --chart-5: oklch(0.18 0.012 160);
+  --radius: 0.75rem;
+  --sidebar: oklch(0.98 0.005 160);
+  --sidebar-foreground: oklch(0.16 0.012 160);
+  --sidebar-primary: oklch(0.65 0.16 158);
+  --sidebar-primary-foreground: oklch(0.99 0.005 155);
+  --sidebar-accent: oklch(0.97 0.005 160);
+  --sidebar-accent-foreground: oklch(0.18 0.012 160);
+  --sidebar-border: oklch(0.93 0.006 160);
+  --sidebar-ring: oklch(0.65 0.16 158);
+
+  /* Brand surface palette (always-dark surfaces, used everywhere) */
+  --midnight: #0A0F0D;
+  --midnight-elevated: #0C1411;
+  --charcoal: #0F1815;
+  --charcoal-raised: #152821;
+  --charcoal-line: #1B2D27;
+  --emerald-brand: #10B981;
+  --emerald-soft: #34D399;
+  --emerald-glow: rgba(16, 185, 129, 0.18);
+  --champagne: #F5C16C;
+  --champagne-light: #FCD9A8;
+  --champagne-glow: rgba(245, 193, 108, 0.18);
+  --ivory: #F8FAFC;
+  --ivory-soft: #94A3B8;
+  --ivory-faint: #64748B;
+}
+
+/* =========================================================================
+   Dark trading-terminal theme — used by the /livechart route only.
+   Wrap the page with <div className="dark"> to opt in.
+   ========================================================================= */
+.dark {
+  --background: oklch(0.17 0.02 250);
+  --foreground: oklch(0.96 0.01 250);
+  --card: oklch(0.21 0.02 250);
+  --card-foreground: oklch(0.96 0.01 250);
+  --popover: oklch(0.21 0.02 250);
+  --popover-foreground: oklch(0.96 0.01 250);
+  --primary: oklch(0.72 0.17 155);
+  --primary-foreground: oklch(0.16 0.02 250);
+  --secondary: oklch(0.27 0.02 250);
+  --secondary-foreground: oklch(0.96 0.01 250);
+  --muted: oklch(0.27 0.02 250);
+  --muted-foreground: oklch(0.70 0.02 250);
+  --accent: oklch(0.32 0.03 250);
+  --accent-foreground: oklch(0.96 0.01 250);
+  --destructive: oklch(0.63 0.22 25);
+  --destructive-foreground: oklch(0.98 0.01 250);
+  --border: oklch(0.30 0.02 250);
+  --input: oklch(0.25 0.02 250);
+  --ring: oklch(0.72 0.17 155);
+  --chart-1: oklch(0.72 0.17 155);
+  --chart-2: oklch(0.63 0.22 25);
+  --chart-3: oklch(0.70 0.02 250);
+  --chart-4: oklch(0.80 0.15 85);
+  --chart-5: oklch(0.60 0.18 230);
+  --sidebar: oklch(0.19 0.02 250);
+  --sidebar-foreground: oklch(0.96 0.01 250);
+  --sidebar-primary: oklch(0.72 0.17 155);
+  --sidebar-primary-foreground: oklch(0.16 0.02 250);
+  --sidebar-accent: oklch(0.27 0.02 250);
+  --sidebar-accent-foreground: oklch(0.96 0.01 250);
+  --sidebar-border: oklch(0.30 0.02 250);
+  --sidebar-ring: oklch(0.72 0.17 155);
+}
+
+@theme inline {
+  --font-sans: 'Geist', 'Geist Fallback';
+  --font-mono: 'Geist Mono', 'Geist Mono Fallback';
+  --font-display: var(--font-quintessential), serif;
+  --font-serif: var(--font-cormorant), serif;
+  /* Antique-luxury body font for the Activate Account flow.
+     IM Fell Double Pica SC is a small-caps Old-Style serif drawn from
+     John Fell's 17th-century type — it gives the activation page a
+     "membership certificate / heritage" feel that pairs naturally with
+     the Gem and Unlock motifs on this surface.
+     Opt in via `font-[var(--font-luxury)]`. */
+  --font-luxury: var(--font-im-fell), 'IM Fell Double Pica SC Fallback', 'Cormorant Garamond', Georgia, serif;
+
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+
+  /* Brand utility colors — usable as bg-midnight, text-champagne, etc. */
+  --color-midnight: var(--midnight);
+  --color-midnight-elevated: var(--midnight-elevated);
+  --color-charcoal: var(--charcoal);
+  --color-charcoal-raised: var(--charcoal-raised);
+  --color-charcoal-line: var(--charcoal-line);
+  --color-emerald-brand: var(--emerald-brand);
+  --color-emerald-soft: var(--emerald-soft);
+  --color-champagne: var(--champagne);
+  --color-champagne-light: var(--champagne-light);
+  --color-ivory: var(--ivory);
+  --color-ivory-soft: var(--ivory-soft);
+  --color-ivory-faint: var(--ivory-faint);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+/* Luxury body font utility — IM Fell Double Pica SC for Activate Account flow. */
+@layer utilities {
+  .font-luxury {
+    font-family: var(--font-luxury);
+  }
+  /* Display numerals utility — New Rocker, used for stat numbers on the
+     Profile page so every digit has the same blackletter accent. */
+  .font-rocker {
+    font-family: var(--font-new-rocker), serif;
+  }
+}
+
+/* =========================================================================
+   Premium animations — used across the marketing pages.
+   ========================================================================= */
+
+/* Subtle pulsing dot for "LIVE" status indicators. */
+@keyframes live-pulse {
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.55;
+    transform: scale(1.18);
+  }
+}
+.live-dot {
+  animation: live-pulse 1.4s ease-in-out infinite;
+}
+
+/* Expanding ring used behind animated icon badges. */
+@keyframes ring-pulse {
+  0% {
+    transform: scale(0.85);
+    opacity: 0.55;
+  }
+  100% {
+    transform: scale(1.7);
+    opacity: 0;
+  }
+}
+.icon-ring {
+  animation: ring-pulse 2.4s cubic-bezier(0.22, 1, 0.36, 1) infinite;
+}
+.icon-ring-delay {
+  animation-delay: 1.2s;
+}
+
+/* Slow vertical float for accent elements. */
+@keyframes float-soft {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-6px);
+  }
+}
+.float-soft {
+  animation: float-soft 4.2s ease-in-out infinite;
+}
+
+/* Drifting aurora used as luxury background lighting. */
+@keyframes aurora-drift {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) scale(1);
+    opacity: 0.55;
+  }
+  33% {
+    transform: translate3d(4%, -3%, 0) scale(1.08);
+    opacity: 0.7;
+  }
+  66% {
+    transform: translate3d(-3%, 2%, 0) scale(0.96);
+    opacity: 0.5;
+  }
+}
+.aurora {
+  animation: aurora-drift 14s ease-in-out infinite;
+}
+.aurora-delay {
+  animation-delay: -7s;
+}
+
+/* Continuous shine traveling across a clipped-to-text gradient.
+   Used on the hero headline for a luxury double-gradient effect. */
+@keyframes text-shine {
+  0% {
+    background-position: 200% center;
+  }
+  100% {
+    background-position: -200% center;
+  }
+}
+.text-shine {
+  background-image: linear-gradient(
+    110deg,
+    #34d399 0%,
+    #6ee7b7 18%,
+    #fcd9a8 38%,
+    #ffffff 50%,
+    #fcd9a8 62%,
+    #6ee7b7 82%,
+    #34d399 100%
+  );
+  background-size: 250% auto;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: text-shine 5.5s linear infinite;
+}
+.text-shine-accent {
+  background-image: linear-gradient(
+    110deg,
+    #f5c16c 0%,
+    #fcd9a8 22%,
+    #ffffff 50%,
+    #fcd9a8 78%,
+    #f5c16c 100%
+  );
+  background-size: 220% auto;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: text-shine 4.5s linear infinite;
+}
+
+/* Teal + onyx shine — used on the dark teal/black home page surface. */
+.text-shine-teal {
+  background-image: linear-gradient(
+    110deg,
+    #1B7892 0%,
+    #2DA9C7 18%,
+    #E8F4F7 38%,
+    #FFFFFF 50%,
+    #E8F4F7 62%,
+    #2DA9C7 82%,
+    #1B7892 100%
+  );
+  background-size: 250% auto;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: text-shine 5.5s linear infinite;
+}
+.text-shine-teal-accent {
+  background-image: linear-gradient(
+    110deg,
+    #1B7892 0%,
+    #5BC0D8 22%,
+    #FFFFFF 50%,
+    #5BC0D8 78%,
+    #1B7892 100%
+  );
+  background-size: 220% auto;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: text-shine 4.5s linear infinite;
+}
+
+/* Light-background shine — uses darker pigments so the gradient stays
+   visible against the cream/ivory home page surface. */
+.text-shine-luxe {
+  background-image: linear-gradient(
+    110deg,
+    #047857 0%,
+    #059669 18%,
+    #b8862e 38%,
+    #0f1815 50%,
+    #b8862e 62%,
+    #059669 82%,
+    #047857 100%
+  );
+  background-size: 250% auto;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: text-shine 5.5s linear infinite;
+}
+.text-shine-luxe-accent {
+  background-image: linear-gradient(
+    110deg,
+    #b8862e 0%,
+    #d49b3d 22%,
+    #0f1815 50%,
+    #d49b3d 78%,
+    #b8862e 100%
+  );
+  background-size: 220% auto;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: text-shine 4.5s linear infinite;
+}
+
+/* Champagne-gold sheen running diagonally across an element. */
+@keyframes sheen {
+  0% {
+    transform: translateX(-120%) skewX(-18deg);
+    opacity: 0;
+  }
+  18% {
+    opacity: 0.55;
+  }
+  35%,
+  100% {
+    transform: translateX(220%) skewX(-18deg);
+    opacity: 0;
+  }
+}
+.sheen {
+  animation: sheen 5.8s ease-in-out infinite;
+}
+
+/* Continuous luxury shine for premium CTA buttons — slower, smoother sweep
+   that runs forever to keep the button feeling alive. */
+@keyframes cta-shine {
+  0% {
+    transform: translateX(-160%) skewX(-20deg);
+    opacity: 0;
+  }
+  10% {
+    opacity: 0.85;
+  }
+  45% {
+    opacity: 0.85;
+  }
+  60%,
+  100% {
+    transform: translateX(260%) skewX(-20deg);
+    opacity: 0;
+  }
+}
+.cta-shine {
+  animation: cta-shine 3.2s ease-in-out infinite;
+}
+
+/* Soft breathing pulse glow used on premium CTAs to keep the button
+   continuously attention-grabbing without being noisy. */
+@keyframes cta-pulse {
+  0%,
+  100% {
+    box-shadow:
+      0 8px 24px -8px rgba(91, 192, 216, 0.55),
+      0 0 0 1px rgba(91, 192, 216, 0.35) inset,
+      0 0 0 0 rgba(91, 192, 216, 0);
+  }
+  50% {
+    box-shadow:
+      0 12px 36px -6px rgba(91, 192, 216, 0.85),
+      0 0 0 1px rgba(125, 227, 255, 0.55) inset,
+      0 0 24px 0 rgba(91, 192, 216, 0.45);
+  }
+}
+.cta-pulse {
+  animation: cta-pulse 2.6s ease-in-out infinite;
+}
+
+/* Subtle "wiggle" used on the community-link icon — a gentle side-to-side
+   tilt that signals interactivity without being noisy. Used via Tailwind's
+   arbitrary animation syntax, e.g. `animate-[wiggle_2.4s_ease-in-out_infinite]`. */
+@keyframes wiggle {
+  0%,
+  100% {
+    transform: rotate(0deg);
+  }
+  20% {
+    transform: rotate(-12deg);
+  }
+  40% {
+    transform: rotate(10deg);
+  }
+  60% {
+    transform: rotate(-6deg);
+  }
+  80% {
+    transform: rotate(4deg);
+  }
+}
+
+/* Continuously rotating conic gradient for premium "halo" rings. */
+@keyframes spin-slow {
+  to {
+    transform: rotate(360deg);
+  }
+}
+.spin-slow {
+  animation: spin-slow 9s linear infinite;
+}
+
+/* Subtle scale-pulse used on premium ornament icons — Gem, Crown, etc.
+   Just enough breath to feel "alive" without being noisy. */
+@keyframes icon-pulse {
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 0.92;
+  }
+  50% {
+    transform: scale(1.08);
+    opacity: 1;
+  }
+}
+.icon-pulse {
+  animation: icon-pulse 2.6s ease-in-out infinite;
+}
+
+/* Gentle vertical drift used on small badge icons. */
+@keyframes icon-drift {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-2px);
+  }
+}
+.icon-drift {
+  animation: icon-drift 3.2s ease-in-out infinite;
+}
+
+/* Continuous slow tilt �� premium "ticking" feel for clock-like icons. */
+@keyframes icon-tilt {
+  0%,
+  100% {
+    transform: rotate(-4deg);
+  }
+  50% {
+    transform: rotate(4deg);
+  }
+}
+.icon-tilt {
+  animation: icon-tilt 4.8s ease-in-out infinite;
+}
+
+/* Soft glow pulse for animated icons. */
+@keyframes glow-soft {
+  0%,
+  100% {
+    filter: drop-shadow(0 0 0 rgba(16, 185, 129, 0));
+  }
+  50% {
+    filter: drop-shadow(0 0 10px rgba(16, 185, 129, 0.55));
+  }
+}
+.glow-soft {
+  animation: glow-soft 2.6s ease-in-out infinite;
+}
+@keyframes glow-gold-pulse {
+  0%,
+  100% {
+    filter: drop-shadow(0 0 0 rgba(245, 193, 108, 0));
+  }
+  50% {
+    filter: drop-shadow(0 0 12px rgba(245, 193, 108, 0.65));
+  }
+}
+.glow-gold {
+  animation: glow-gold-pulse 2.6s ease-in-out infinite;
+}
+
+/* =========================================================================
+   Animated check & cross marks — used in pricing cards.
+   ========================================================================= */
+
+/* Pop-in for the surrounding badge */
+@keyframes mark-pop {
+  0% {
+    transform: scale(0.4);
+    opacity: 0;
+  }
+  60% {
+    transform: scale(1.15);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+.mark-pop {
+  animation: mark-pop 0.55s cubic-bezier(0.22, 1.4, 0.36, 1) both;
+}
+
+/* Stroke draw-in for the path itself */
+@keyframes stroke-draw {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+.check-draw {
+  stroke-dasharray: 24;
+  stroke-dashoffset: 24;
+  animation: stroke-draw 0.55s cubic-bezier(0.65, 0, 0.35, 1) 0.18s forwards;
+}
+.cross-draw-a {
+  stroke-dasharray: 18;
+  stroke-dashoffset: 18;
+  animation: stroke-draw 0.32s ease-out 0.1s forwards;
+}
+.cross-draw-b {
+  stroke-dasharray: 18;
+  stroke-dashoffset: 18;
+  animation: stroke-draw 0.32s ease-out 0.38s forwards;
+}
+
+/* Soft outward pulse ring sitting behind the badge */
+@keyframes mark-ring {
+  0% {
+    transform: scale(0.85);
+    opacity: 0.55;
+  }
+  100% {
+    transform: scale(1.7);
+    opacity: 0;
+  }
+}
+.mark-ring {
+  animation: mark-ring 2.4s cubic-bezier(0.22, 1, 0.36, 1) infinite;
+}
+.mark-ring-delay {
+  animation-delay: 1.2s;
+}
+
+/* Continuous left-to-right marquee strip. */
+@keyframes marquee {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+.marquee-track {
+  animation: marquee 38s linear infinite;
+}
+
+/* Fade-in-up entrance used by hero copy. */
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.fade-up {
+  animation: fade-up 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.fade-up-1 {
+  animation-delay: 0.05s;
+}
+.fade-up-2 {
+  animation-delay: 0.18s;
+}
+.fade-up-3 {
+  animation-delay: 0.32s;
+}
+.fade-up-4 {
+  animation-delay: 0.46s;
+}
+
+/* ---- Trading-graph background animations ---------------------------------
+   Used by the profile hero card. A long, slow, continuous loop keeps the
+   motion subtle so it never competes with the foreground content. */
+@keyframes chart-line-flow {
+  0% {
+    stroke-dashoffset: 0;
+    opacity: 0.85;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    stroke-dashoffset: -480;
+    opacity: 0.85;
+  }
+}
+.chart-line-flow {
+  stroke-dasharray: 6 8;
+  animation: chart-line-flow 14s linear infinite;
+}
+
+@keyframes chart-pulse-dot {
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.6);
+    opacity: 0.4;
+  }
+}
+.chart-pulse-dot {
+  transform-origin: center;
+  transform-box: fill-box;
+  animation: chart-pulse-dot 1.8s ease-in-out infinite;
+}
+
+@keyframes chart-candle-rise {
+  0%,
+  100% {
+    opacity: 0.55;
+    transform: scaleY(1);
+  }
+  50% {
+    opacity: 1;
+    transform: scaleY(1.08);
+  }
+}
+.chart-candle {
+  transform-origin: bottom center;
+  transform-box: fill-box;
+  animation: chart-candle-rise 4s ease-in-out infinite;
+}
+
+/* Continuous badge shine effect — smooth, non-laggy sweep */
+@keyframes badge-shine {
+  0% {
+    left: -100%;
+  }
+  50%, 100% {
+    left: 150%;
+  }
+}
+.badge-shine::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 60%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.35) 50%,
+    transparent 100%
+  );
+  transform: skewX(-20deg);
+  animation: badge-shine 2.5s ease-in-out infinite;
+}
+
+/* Respect reduced-motion preferences. */
+@media (prefers-reduced-motion: reduce) {
+  .live-dot,
+  .icon-ring,
+  .float-soft,
+  .aurora,
+  .sheen,
+  .cta-shine,
+  .cta-pulse,
+  .spin-slow,
+  .icon-pulse,
+  .icon-drift,
+  .icon-tilt,
+  .glow-soft,
+  .glow-gold,
+  .marquee-track,
+  .fade-up,
+  .mark-pop,
+  .mark-ring,
+  .check-draw,
+  .cross-draw-a,
+  .cross-draw-b,
+  .chart-line-flow,
+  .chart-pulse-dot,
+  .chart-candle,
+    .text-shine,
+    .text-shine-accent,
+    .text-shine-luxe,
+    .text-shine-luxe-accent,
+    .text-shine-teal,
+    .text-shine-teal-accent,
+    .badge-shine::after {
+    animation: none !important;
+  }
+}

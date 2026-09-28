@@ -1,0 +1,27 @@
+{
+  "summary": "Ran the offline simulation for the 199-historical-candles feature (tests_sim_always_on.py) from /tmp/pyb_sim so no __pycache__ leaks into repo. ALL CHECKS PASSED. Also wrote a scratch edge-case test (/tmp/pyb_sim/scratch_edges.py) that verifies (a) history/load reply for a different asset/index is ignored -> returns [], (b) timeout returns [], (c) list-format rows [time,open,close,high,low] are mapped correctly with OHLC invariants preserved, (d) bucket_candles aggregates same-bucket rows correctly. ALL EDGE CHECKS PASSED. No production code changes needed.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {"ui_bugs": [], "integration_issues": [], "design_issues": []},
+  "test_report_links": [
+    "/app/frontend/python_backend/tests_sim_always_on.py",
+    "/tmp/pyb_sim/scratch_edges.py"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "live_collector._load_history: matches broker reply by index OR asset (line 281) — correct; cross-asset replies are ignored (verified).",
+    "live_collector._backfill: history requests serialised (verified max_inflight=1 across 12 requests in sim); trims to last 199 via [-HISTORY_COUNT:] and cut = min(started_at, first live candle time) — verified.",
+    "list-format broker rows mapped as [time, open, close, high, low] (line 285) — verified via bucket_candles OHLC invariants.",
+    "Fallback client.get_candles is only used when history/load returns < 199 — verified (stats['get_candles']==0 in sim).",
+    "Timeout branch returns [] (line 292) — verified.",
+    "Collector keeps running after user unsubscribe — verified.",
+    "Home-page USD/BRL OTC public chart wired through the collector — verified.",
+    "Note (informational): _load_history returns raw history (not yet trimmed to 199); trimming happens in _backfill via [-HISTORY_COUNT:]. This is intentional and correct; just worth being aware of when reading code."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "100%", "frontend": "n/a (skipped per request)"},
+  "seed_data_creation": "None (offline FakeSession/FakeApi provided by tests_sim_always_on.py).",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Simulation must be run from a copy (e.g. cp -r /app/frontend/python_backend /tmp/pyb_sim) to avoid __pycache__/session artefacts landing in the repo. Use venv /root/qv (/root/qv/bin/python). Real Quotex login is blocked from this pod (Cloudflare) — only the offline sim is possible. The supervisor 'backend' service is an unrelated FastAPI template and must NOT be conflated with /app/frontend/python_backend.",
+  "rca of the issue": "N/A — user-reported bug ('199 historical candles are not being fetched, candles after those must be tick-built') is not reproducible offline: the collector correctly loads exactly 199 candles strictly older than collector.started_at for every (market, period) pair, then builds subsequent candles from ticks. The pipeline logic is verified correct. If the bug still manifests on the user's VPS it is almost certainly a real-broker issue (history/load reply shape, latency > HISTORY_TIMEOUT_S=15s, or the fallback path). Recommend: on VPS, enable DEBUG logging for 'live-collector', check 'history %s/%ss: %d candles' log lines to see if any stream returns < 199 (which would indicate the real broker's history/load reply is shaped differently or slow)."
+}

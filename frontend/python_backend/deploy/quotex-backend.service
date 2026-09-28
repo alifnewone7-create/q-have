@@ -1,0 +1,25 @@
+# /etc/systemd/system/quotex-backend.service
+# Runs python_backend/main.py 24/7, auto-restarts on crash / reboot.
+[Unit]
+Description=Quotex Live backend (always-on markets)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/root/python_backend
+# main.py auto-loads python_backend/.env via python-dotenv (no EnvironmentFile
+# needed — systemd would NOT strip inline "# comments" from values).
+ExecStart=/root/python_backend/venv/bin/python main.py
+Restart=always
+RestartSec=5
+# Give the backend time to close the Quotex session cleanly on restart
+TimeoutStopSec=20
+KillSignal=SIGTERM
+LimitNOFILE=65535
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target

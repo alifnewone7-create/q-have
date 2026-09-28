@@ -1,0 +1,22 @@
+{
+  "summary": "Backend-only offline simulation for /app/frontend/python_backend. Ran tests_sim_always_on.py in a /tmp copy and a scratch edge-case script. All primary checks and all four edge cases pass. history/list/v2 is confirmed as the primary source (log line 'history CODE/Ps: 199 candles (history/list/v2)' for all 12 streams), with history/load exercised as the fallback in scratch tests. Requests remain serialized (max concurrent = 1). Chart buffer contains 199 historical + 1 tick-built candle. Early viewers receive the history frame instantly (~0.2 ms).",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {"ui_bugs": [], "integration_issues": [], "design_issues": []},
+  "test_report_links": [
+    "/tmp/pyb_sim/tests_sim_always_on.py",
+    "/tmp/pyb_sim/scratch_edges.py"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "live_collector._load_v2: when a wrong-timeframe reply is popped, the loop keeps polling until V2_TIMEOUT_S. That's correct behavior for the (a) edge case, but if the broker ever streams the wrong-tf reply repeatedly, the primary-source timer is fully spent before falling back. Acceptable given V2_TIMEOUT_S=8s.",
+    "_load_history: the historical_candles matcher checks msg.get('index')==index OR msg.get('asset')==code. The 'asset' fallback could match a stale reply from a previous get_candles for the same asset. Low risk since started_at cut filters older candles, but consider index-only matching."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "100%", "frontend": "N/A"},
+  "test_credentials": "N/A (offline sim)",
+  "seed_data_creation": "None; FakeClient/FakeApi in tests only.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Run: rm -rf /tmp/pyb_sim && cp -r /app/frontend/python_backend /tmp/pyb_sim && cd /tmp/pyb_sim && /root/qv/bin/python tests_sim_always_on.py  (expect 'ALL CHECKS PASSED'). Then /root/qv/bin/python scratch_edges.py from same dir for the 4 edge cases (a wrong-tf, b v2 timeout, c short v2 merged, d pre-subscribe drain). V2_TIMEOUT_S can be monkeypatched via `import live_collector as lc; lc.V2_TIMEOUT_S = ...` to speed up. Do NOT start supervisor backend — it's an unrelated FastAPI template.",
+  "rca of the issue": "N/A — no bugs found. All requirements verified: history/list/v2 primary path stores broker's ~500 candles in api.candle_v2_data[code]['candles'] when current_asset matches (client.py:131-142); collector keeps last 199 older-than-started_at; history/load is only invoked when v2 yields <199 or times out; requests serialized (0.2s sleep between keys); buffered ticks drained via self._emit(self._drain(False)) before start_candles_stream in _load_v2."
+}
