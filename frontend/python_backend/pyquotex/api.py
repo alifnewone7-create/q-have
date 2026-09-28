@@ -120,6 +120,7 @@ class QuotexAPI:
         self.signal_data = {}
         self.get_candle_data = {}
         self.historical_candles = {}
+        self.history_load_data = {}
         self.candle_v2_data = {}
         self.realtime_price = {}
         self.realtime_price_data = []

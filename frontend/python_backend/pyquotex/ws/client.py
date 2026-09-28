@@ -89,6 +89,8 @@ class WebsocketClient:
                         self.api.profit_today = message
                     elif message.get("index"):
                         self.api.historical_candles = message
+                        # Keep every history/load response keyed by its request index
+                        self.api.history_load_data[message["index"]] = message
                         if message.get("closeTimestamp"):
                             self.api.timesync.server_timestamp = message.get("closeTimestamp")
                     if message.get("pending"):

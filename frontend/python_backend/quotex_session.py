@@ -449,6 +449,51 @@ def _aggregate_ticks_to_candles(
     return out
 
 
+def _parse_history_load(msg: dict[str, Any], period: int) -> list[dict[str, Any]]:
+    """Convert a raw ``history/load`` response into closed OHLC candles (no filtering)."""
+    raw = msg.get("data") or msg.get("candles") or []
+    out: dict[int, dict[str, Any]] = {}
+    ticks: list[Any] = []
+    for c in raw if isinstance(raw, list) else []:
+        try:
+            if isinstance(c, (list, tuple)) and len(c) >= 5:
+                t, o, cl, h, lo = c[0], c[1], c[2], c[3], c[4]
+            elif isinstance(c, dict) and c.get("open") is not None:
+                t, o, cl, h, lo = c["time"], c["open"], c["close"], c["high"], c["low"]
+            else:
+                ticks.append(c)
+                continue
+            t = int(float(t))
+            o, cl, h, lo = float(o), float(cl), float(h), float(lo)
+        except (KeyError, TypeError, ValueError, IndexError):
+            continue
+        bucket = (t // period) * period
+        out[bucket] = {
+            "time": bucket,
+            "open": o,
+            "high": max(h, o, cl),
+            "low": min(lo, o, cl),
+            "close": cl,
+        }
+
+    from_ticks = False
+    if not out:
+        tick_src = ticks or msg.get("history") or []
+        agg = _aggregate_ticks_to_candles(tick_src, period) if tick_src else None
+        if agg:
+            from_ticks = True
+            for c in agg:
+                out[int(c["time"])] = {k: c[k] for k in ("time", "open", "high", "low", "close")}
+
+    candles = sorted(out.values(), key=lambda c: c["time"])
+    # Tick windows start mid-bucket, so the first tick-built bucket is partial.
+    if from_ticks and candles:
+        candles = candles[1:]
+    # The still-forming bucket is owned by the live tick stream.
+    current_bucket = (int(time.time()) // period) * period
+    return [c for c in candles if c["time"] < current_bucket]
+
+
 def _normalize_candle(c: Any, default_time: int | None = None) -> dict[str, Any] | None:
     """Coerce whatever pyquotex returns into {time, open, high, low, close, volume}."""
 
@@ -1742,6 +1787,47 @@ class QuotexSession:
                 asset_locks.pop(asset, None)
 
 
+    async def _history_load(
+        self, asset: str, period: int, end_time: float, offset: int, timeout: float = 10.0
+    ) -> list[dict[str, Any]]:
+        """Send a raw ``history/load`` request and return the broker's candles as-is."""
+        client = self.client
+        api = getattr(client, "api", None) if client is not None else None
+        store = getattr(api, "history_load_data", None)
+        if not isinstance(store, dict):
+            return []
+
+        index = int(time.time() * 100)
+        last = getattr(self, "_history_load_last_index", 0)
+        if index <= last:
+            index = last + 1
+        self._history_load_last_index = index
+
+        payload = {
+            "asset": asset,
+            "index": index,
+            "time": int(end_time),
+            "offset": int(offset),
+            "period": int(period),
+        }
+        try:
+            api.send_websocket_request(f'42["history/load",{json.dumps(payload)}]')
+        except Exception as exc:  # noqa: BLE001
+            log.warning("history/load send failed for %s/%s: %s", asset, period, exc)
+            return []
+
+        deadline = time.time() + timeout
+        msg = None
+        while time.time() < deadline:
+            msg = store.pop(index, None)
+            if msg is not None:
+                break
+            await asyncio.sleep(0.1)
+        if not isinstance(msg, dict):
+            log.info("history/load timed out for %s/%s (index=%d)", asset, period, index)
+            return []
+        return _parse_history_load(msg, int(period))
+
     async def get_history(
         self, asset: str, period: int, count: int = 120
     ) -> list[dict[str, Any]]:
@@ -1811,6 +1897,18 @@ class QuotexSession:
                 return entry[1]
 
             target = int(count)
+
+            # Direct history/load: return every candle Quotex sends, untouched.
+            direct = await self._history_load(
+                asset, int(period), time.time(), int(period) * target
+            )
+            if direct:
+                log.info(
+                    "history (direct history/load) -> %d candles for %s/%s",
+                    len(direct), asset, period,
+                )
+                cache[cache_key] = (time.time(), direct)
+                return direct
 
             # -------------------------------------------------------------
             # =================================================================
@@ -2943,6 +3041,12 @@ class QuotexSession:
         client = self.client
         if client is None:
             return None
+        direct = await self._history_load(
+            asset, int(period), bucket_time + int(period) * 2, int(period) * 5
+        )
+        for c in direct:
+            if int(c["time"]) == bucket_time:
+                return c
         # Overshoot the bucket end by 2 periods so the broker definitely
         # includes our target candle in the response. The offset window
         # is intentionally small (5 buckets) — a single closed bucket is

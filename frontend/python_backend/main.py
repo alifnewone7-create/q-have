@@ -878,10 +878,6 @@ def _replace_live_buffer(
     cleaned.sort(key=lambda c: int(c["time"]))
     period = key[1]
 
-    # Forward-fill any missing buckets for sparse OTC pairs
-    if period > 0 and len(cleaned) >= 2:
-        cleaned = _fill_candle_gaps(cleaned, period)
-
     # Capture the existing forming candle (if any) before the replace
     forming: dict[str, Any] | None = None
     if period > 0:
